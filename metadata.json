@@ -1,0 +1,8 @@
+{
+  "name": "D&D Industries PWA",
+  "description": "Offline-first Progressive Web App for Inventory and Machinery management based in San Vicente de Tagua Tagua.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}
