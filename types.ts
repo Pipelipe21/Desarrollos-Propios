@@ -35,11 +35,11 @@ export enum LogType {
 // Database Schema Interfaces
 export interface User {
   id?: number;
+  firebaseUid: string; // Links to the Firebase Auth account that owns this profile
   username: string;
   fullName: string;
   role: UserRole;
   department: 'bazar' | 'taller'; // Strict separation field
-  passwordHash: string;
   geoFenceAllowed?: string;
 }
 

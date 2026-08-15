@@ -53,6 +53,34 @@ class DndDatabase extends Dexie {
       tasks: '++id, assignedTo, status, priority, dueDate',
       manuals: '++id, machineId, title',
       manualSegments: '++id, manualId, pageNumber',
+      employeeProfiles: '++id, userId, rut',
+      payrollRecords: '++id, employeeId, period',
+      payrollConfig: '++id' // Singleton
+    });
+
+    // Version 14: Firebase Auth migration — users are identified by firebaseUid,
+    // not a locally-stored password.
+    this.version(14).stores({
+      users: '++id, username, role, department, firebaseUid',
+      products: '++id, name, category, ean, vendor',
+      batches: '++id, productId, batchNumber, color, sku, barcode',
+      equipment: '++id, model, licensePlate, status, vin',
+      logs: '++id, userId, type, timestamp, syncStatus',
+      sales: '++id, userId, timestamp, status, syncStatus',
+      cashShifts: '++id, userId, status, syncStatus',
+      attendance: '++id, userId, type, timestamp, syncStatus',
+      diagnosticLogs: '++id, machineId, timestamp',
+      checklists: '++id, machineId, timestamp',
+      spareParts: '++id, name, oemCode, brand, category, currentStock',
+      tools: '++id, name, status, assignedTo',
+      toolLogs: '++id, toolId, userId, timestamp',
+      workOrders: '++id, machineId, technicianId, status, createdAt',
+      notifications: '++id, userId, read, timestamp',
+      documents: '++id, title, type, expirationDate, status',
+      machineLogs: '++id, machineId, timestamp',
+      tasks: '++id, assignedTo, status, priority, dueDate',
+      manuals: '++id, machineId, title',
+      manualSegments: '++id, manualId, pageNumber',
       
       // New Tables
       employeeProfiles: '++id, userId, rut',
@@ -61,44 +89,47 @@ class DndDatabase extends Dexie {
     });
 
     // SEEDER
+    // Note: these local profiles have no firebaseUid yet. AuthContext links each
+    // one to its real Firebase Auth account (by matching username) the first time
+    // that person signs in successfully — see AuthContext.tsx `login()`.
     this.on('populate', async () => {
       // 1. USERS - STRICT ROLE SEPARATION
-      const userId1 = await this.users.add({ 
-          username: 'mama_admin', 
-          fullName: 'Mamá (Gerencia Bazar)', 
-          role: UserRole.ADMIN, 
+      const userId1 = await this.users.add({
+          username: 'mama_admin',
+          fullName: 'Mamá (Gerencia Bazar)',
+          role: UserRole.ADMIN,
           department: 'bazar',
-          passwordHash: 'admin123' 
+          firebaseUid: ''
       });
-      const userId2 = await this.users.add({ 
-          username: 'papa_tuerca', 
-          fullName: 'Papá (Gerencia Maquinaria)', 
-          role: UserRole.ADMIN, 
+      const userId2 = await this.users.add({
+          username: 'papa_tuerca',
+          fullName: 'Papá (Gerencia Maquinaria)',
+          role: UserRole.ADMIN,
           department: 'taller',
-          passwordHash: 'admin123' 
+          firebaseUid: ''
       });
-      const userId3 = await this.users.add({ 
-          username: 'vendedora_pro', 
-          fullName: 'Vendedora Bazar', 
-          role: UserRole.VENDEDORA, 
+      const userId3 = await this.users.add({
+          username: 'vendedora_pro',
+          fullName: 'Vendedora Bazar',
+          role: UserRole.VENDEDORA,
           department: 'bazar',
-          passwordHash: '123' 
+          firebaseUid: ''
       });
-      
+
       await this.users.bulkAdd([
-        { 
-          username: 'tecnico_pro', 
-          fullName: 'Especialista Técnico', 
-          role: UserRole.ESPECIALISTA, 
+        {
+          username: 'tecnico_pro',
+          fullName: 'Especialista Técnico',
+          role: UserRole.ESPECIALISTA,
           department: 'taller',
-          passwordHash: '123' 
+          firebaseUid: ''
         },
-        { 
-          username: 'operador', 
-          fullName: 'Operador Maquinaria', 
-          role: UserRole.OPERADOR, 
+        {
+          username: 'operador',
+          fullName: 'Operador Maquinaria',
+          role: UserRole.OPERADOR,
           department: 'taller',
-          passwordHash: '123' 
+          firebaseUid: ''
         }
       ]);
 

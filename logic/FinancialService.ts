@@ -1,8 +1,6 @@
 import { db } from "../db/db";
-import { GoogleGenAI } from "@google/genai";
+import { getGeminiClient } from "./geminiClient";
 import { Sale, Product } from "../types";
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export interface FinancialMetrics {
   totalRevenue: number;
@@ -96,6 +94,9 @@ const getFrequentPairs = (sales: Sale[]) => {
  */
 export const generateStrategicAdvice = async (sales: Sale[]): Promise<string> => {
   try {
+    const ai = getGeminiClient();
+    if (!ai) return "Asistente IA no disponible (falta configurar la API key).";
+
     // 1. Prepare Data Context
     const products = await db.products.toArray();
     

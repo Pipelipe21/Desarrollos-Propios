@@ -1,7 +1,10 @@
 {
+  "firestore": {
+    "rules": "firestore.rules"
+  },
   "hosting": {
     "site": "dyd-system",
-    "public": ".",
+    "public": "dist",
     "ignore": [
       "firebase.json",
       "**/.*",

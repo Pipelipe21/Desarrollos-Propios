@@ -1,11 +1,13 @@
-// Configuration: San Vicente de Tagua Tagua
-// Replace with exact business coordinates
+// TODO antes de producción: confirma que estas son las coordenadas EXACTAS del
+// negocio (abre Google Maps, click derecho sobre la ubicación real, copia el
+// par de coordenadas) y ajusta el radio a algo realista para el terreno
+// (típicamente 50-150m; 1000m prácticamente no filtra nada).
 const BUSINESS_LOCATION = {
-  latitude: -34.439167, 
+  latitude: -34.439167,
   longitude: -71.075833
 };
 
-const ALLOWED_RADIUS_METERS = 1000; // Increased to 1km for demo purposes (usually 50-100m)
+const ALLOWED_RADIUS_METERS = 150;
 
 /**
  * Calculates distance between two coordinates using Haversine formula

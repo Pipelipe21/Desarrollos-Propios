@@ -1,0 +1,7 @@
+[
+  { "username": "mama_admin", "fullName": "Mamá (Gerencia Bazar)", "role": "admin", "department": "bazar", "password": "CAMBIA-ESTA-CLAVE-1" },
+  { "username": "papa_tuerca", "fullName": "Papá (Gerencia Maquinaria)", "role": "admin", "department": "taller", "password": "CAMBIA-ESTA-CLAVE-2" },
+  { "username": "vendedora_pro", "fullName": "Vendedora Bazar", "role": "vendedora", "department": "bazar", "password": "CAMBIA-ESTA-CLAVE-3" },
+  { "username": "tecnico_pro", "fullName": "Especialista Técnico", "role": "especialista", "department": "taller", "password": "CAMBIA-ESTA-CLAVE-4" },
+  { "username": "operador", "fullName": "Operador Maquinaria", "role": "operador", "department": "taller", "password": "CAMBIA-ESTA-CLAVE-5" }
+]

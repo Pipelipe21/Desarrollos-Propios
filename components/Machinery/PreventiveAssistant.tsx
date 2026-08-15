@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db } from '../../db/db';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { GoogleGenAI } from "@google/genai";
+import { getGeminiClient } from '../../logic/geminiClient';
 import { Activity, RefreshCw, AlertTriangle, CheckCircle, BrainCircuit } from 'lucide-react';
 
 const PreventiveAssistant: React.FC<{ onClose: () => void }> = ({ onClose }) => {
@@ -22,8 +22,13 @@ const PreventiveAssistant: React.FC<{ onClose: () => void }> = ({ onClose }) => 
     }
 
     setLoading(true);
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-    
+    const ai = getGeminiClient();
+    if (!ai) {
+      setAnalysis('Asistente IA no disponible (falta configurar la API key).');
+      setLoading(false);
+      return;
+    }
+
     // Construct context
     const context = criticalMachines.map(m => 
       `- ${m.brand} ${m.model} (Horas: ${m.currentHourMeter}, Prox. Mant: ${m.nextMaintenanceAt}).`

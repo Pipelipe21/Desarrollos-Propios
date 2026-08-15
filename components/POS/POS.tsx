@@ -5,9 +5,11 @@ import { useAuth } from '../../context/AuthContext';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Search, ScanLine, Trash2, ShoppingCart, Plus, Minus, ArrowRight, Sparkles } from 'lucide-react';
 import { getRecommendations } from '../../logic/RecommendationEngine';
-import BarcodeScanner from '../BarcodeScanner';
 import CashRegister from './CashRegister';
 import CheckoutTerminal from './CheckoutTerminal';
+
+// Lazy-loaded: pulls in @zxing/browser, only needed once someone opens the scanner.
+const BarcodeScanner = React.lazy(() => import('../BarcodeScanner'));
 
 const SmartSuggestions: React.FC<{ cart: CartItem[] }> = ({ cart }) => {
   if (cart.length === 0) return null;
@@ -100,7 +102,11 @@ const POS: React.FC = () => {
 
   return (
     <div className="h-[calc(100vh-64px)] bg-slate-100 dark:bg-slate-900 flex overflow-hidden">
-      {isScannerOpen && <BarcodeScanner onScan={handleScan} onClose={() => setIsScannerOpen(false)} />}
+      {isScannerOpen && (
+        <React.Suspense fallback={null}>
+          <BarcodeScanner onScan={handleScan} onClose={() => setIsScannerOpen(false)} />
+        </React.Suspense>
+      )}
       
       {isCheckoutOpen && (
         <CheckoutTerminal 

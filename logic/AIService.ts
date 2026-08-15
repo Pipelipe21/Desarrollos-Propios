@@ -1,9 +1,6 @@
-import { GoogleGenAI } from "@google/genai";
 import { db } from "../db/db";
+import { getGeminiClient } from "./geminiClient";
 import { Sale, Product, CashShift, SyncStatus, DiagnosticLog, Equipment } from "../types";
-
-// Initialize Gemini Client
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 interface WeeklyData {
   sales: Sale[];
@@ -105,6 +102,9 @@ export const calculateAnalytics = async (): Promise<AnalyticsSummary> => {
 
 export const generateWeeklyReport = async (): Promise<string> => {
   try {
+     const ai = getGeminiClient();
+     if (!ai) return "Asistente IA no disponible (falta configurar la API key).";
+
      const data = await gatherWeeklyData();
      
      const totalSales = data.sales.reduce((sum, s) => sum + s.total, 0);
@@ -140,6 +140,9 @@ export const generateWeeklyReport = async (): Promise<string> => {
  */
 export const diagnoseMachinery = async (machine: Equipment, symptoms: string): Promise<string> => {
   try {
+    const ai = getGeminiClient();
+    if (!ai) throw new Error("Asistente IA no disponible (falta configurar la API key).");
+
     // 1. Fetch Diagnostic History
     const history = await db.diagnosticLogs
       .where('machineId').equals(machine.id || 0)
@@ -210,6 +213,9 @@ export const diagnoseMachinery = async (machine: Equipment, symptoms: string): P
  */
 export const consultWorkshopAssistant = async (userQuery: string): Promise<string> => {
   try {
+    const ai = getGeminiClient();
+    if (!ai) return "Asistente IA no disponible (falta configurar la API key).";
+
     // 1. Gather Workshop Context (RAG)
     const parts = await db.spareParts.toArray();
     const tools = await db.tools.toArray();

@@ -6,9 +6,11 @@ import { ShoppingBag, Store, TrendingUp, AlertCircle, Clock, Sparkles, PieChart 
 import POS from '../POS/POS';
 import InventoryManager from '../InventoryManager';
 import AttendanceModule from '../HR/AttendanceModule';
-import AIReportModal from '../Admin/AIReportModal';
 import FinancialDashboard from './FinancialDashboard';
 import { UserRole } from '../../types';
+
+// Lazy-loaded: pulls in @google/genai, only needed once someone opens the AI report.
+const AIReportModal = React.lazy(() => import('../Admin/AIReportModal'));
 
 const BazarDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -70,7 +72,11 @@ const BazarDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-pink-50/50 dark:bg-slate-900 p-6 animate-in fade-in duration-500">
        
-       {showAI && <AIReportModal onClose={() => setShowAI(false)} />}
+       {showAI && (
+         <React.Suspense fallback={null}>
+           <AIReportModal onClose={() => setShowAI(false)} />
+         </React.Suspense>
+       )}
 
        <header className="mb-8 flex justify-between items-center">
           <div>

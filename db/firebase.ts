@@ -1,6 +1,9 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, FirebaseApp } from "firebase/app";
 import { getFirestore, Firestore } from "firebase/firestore";
+import { getAuth, Auth, browserLocalPersistence, setPersistence } from "firebase/auth";
 
+// Firebase's client config is not a secret (it's public by design — access is
+// governed by Firestore/Storage security rules, not by hiding this object).
 const firebaseConfig = {
   apiKey: "AIzaSyAqXO7MJ3tX_ZOUKxG0T-KPEeSx7_uJF98",
   authDomain: "dyd-industries.firebaseapp.com",
@@ -11,20 +14,25 @@ const firebaseConfig = {
 };
 
 let remoteDb: Firestore | null = null;
-let app: any = null;
+let auth: Auth | null = null;
+let app: FirebaseApp | null = null;
 
 try {
-  // Safe initialization
   app = initializeApp(firebaseConfig);
-  
-  // Try to initialize Firestore
-  // Note: getFirestore can sometimes fail in specific environments if app isn't ready
   remoteDb = getFirestore(app);
+  auth = getAuth(app);
+  // Keep the session cached locally so login survives offline/refresh, matching
+  // the app's offline-first design (only the initial sign-in needs connectivity).
+  setPersistence(auth, browserLocalPersistence).catch((error) => {
+    console.error("Firebase Auth persistence setup failed.", error);
+  });
   console.log("Firebase initialized successfully");
 } catch (error) {
   console.error("Firebase initialization failed. Running in Offline Mode.", error);
-  // App will continue to work with local IndexedDB (Dexie)
+  // App will continue to work with local IndexedDB (Dexie), but login requires
+  // Firebase Auth, so authentication will be unavailable until connectivity returns.
   remoteDb = null;
+  auth = null;
 }
 
-export { remoteDb };
+export { remoteDb, auth };

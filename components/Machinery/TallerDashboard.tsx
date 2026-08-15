@@ -6,12 +6,14 @@ import { Wrench, Truck, ClipboardList, Clock, Activity, Sparkles, BrainCircuit, 
 import FleetDashboard from './FleetDashboard';
 import SpecialistDashboard from './SpecialistDashboard';
 import AttendanceModule from '../HR/AttendanceModule';
-import AIReportModal from '../Admin/AIReportModal';
 import TaskBoard from '../Tasks/TaskBoard';
-import PreventiveAssistant from './PreventiveAssistant';
 import LibraryManager from './LibraryManager';
-import TechnicalAssistant from './TechnicalAssistant';
 import { UserRole } from '../../types';
+
+// Lazy-loaded: these pull in @google/genai and/or pdfjs-dist, only needed on demand.
+const AIReportModal = React.lazy(() => import('../Admin/AIReportModal'));
+const PreventiveAssistant = React.lazy(() => import('./PreventiveAssistant'));
+const TechnicalAssistant = React.lazy(() => import('./TechnicalAssistant'));
 
 const TallerDashboard: React.FC = () => {
   const { user } = useAuth();
@@ -68,11 +70,13 @@ const TallerDashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 font-mono p-6 animate-in fade-in duration-500">
        
-       {showAI && <AIReportModal onClose={() => setShowAI(false)} />}
+       <React.Suspense fallback={null}>
+         {showAI && <AIReportModal onClose={() => setShowAI(false)} />}
+         {showPreventive && <PreventiveAssistant onClose={() => setShowPreventive(false)} />}
+         {showTechAssist && <TechnicalAssistant onClose={() => setShowTechAssist(false)} />}
+       </React.Suspense>
        {showTaskBoard && <TaskBoard onClose={() => setShowTaskBoard(false)} />}
-       {showPreventive && <PreventiveAssistant onClose={() => setShowPreventive(false)} />}
        {showLibrary && <LibraryManager onClose={() => setShowLibrary(false)} />}
-       {showTechAssist && <TechnicalAssistant onClose={() => setShowTechAssist(false)} />}
 
        <header className="mb-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b-2 border-slate-800 pb-6">
           <div>

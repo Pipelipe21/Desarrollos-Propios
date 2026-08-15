@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { db } from '../../db/db';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { GoogleGenAI } from "@google/genai";
+import { getGeminiClient } from '../../logic/geminiClient';
 import { searchManualsLocally, SearchResult } from '../../logic/PDFService';
 import { Bot, Wifi, WifiOff, Send, BookOpen, AlertTriangle, Layers } from 'lucide-react';
 import { useNetworkStatus } from '../../hooks/useNetworkStatus';
@@ -46,10 +46,10 @@ const TechnicalAssistant: React.FC<TechnicalAssistantProps> = ({ onClose }) => {
       // 1. Perform Local Search (Always done, to provide context or offline answer)
       const localResults = await searchManualsLocally(userMsg.content, selectedMachineId || undefined);
 
-      if (isOnline) {
+      const ai = getGeminiClient();
+
+      if (isOnline && ai) {
         // ONLINE MODE: GEMINI + RAG
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-        
         let contextText = "";
         if (localResults.length > 0) {
            contextText = "CONTEXTO DE MANUALES TÉCNICOS:\n" + 
@@ -81,17 +81,17 @@ const TechnicalAssistant: React.FC<TechnicalAssistantProps> = ({ onClose }) => {
         }]);
 
       } else {
-        // OFFLINE MODE: RAW SEARCH RESULTS
+        // LOCAL MODE: RAW SEARCH RESULTS (no connectivity, or Gemini isn't configured)
         if (localResults.length === 0) {
-          setMessages(prev => [...prev, { 
-            role: 'ai', 
-            content: 'No encontré información en los manuales descargados. Intenta con otras palabras clave.' 
+          setMessages(prev => [...prev, {
+            role: 'ai',
+            content: 'No encontré información en los manuales descargados. Intenta con otras palabras clave.'
           }]);
         } else {
           const topResult = localResults[0];
-          setMessages(prev => [...prev, { 
-            role: 'ai', 
-            content: `Modo Offline: He encontrado referencias en el manual "${topResult.manualTitle}".\n\n"${topResult.segment.content.substring(0, 300)}..."`,
+          setMessages(prev => [...prev, {
+            role: 'ai',
+            content: `Modo local: He encontrado referencias en el manual "${topResult.manualTitle}".\n\n"${topResult.segment.content.substring(0, 300)}..."`,
             sources: localResults
           }]);
         }

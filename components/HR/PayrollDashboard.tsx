@@ -231,6 +231,9 @@ const PayrollCalculator: React.FC<{ config: PayrollConfig }> = ({ config }) => {
 
           {calculatedRecord ? (
              <div className="space-y-6 animate-in fade-in">
+                <div className="text-xs text-amber-700 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400 border border-amber-200 dark:border-amber-800 rounded-lg px-3 py-2">
+                   ⚠️ La tabla de Impuesto Único usada aquí es una aproximación. Valida estos montos con un contador antes de pagar sueldos reales.
+                </div>
                 <div className="grid grid-cols-2 gap-8 border-b border-slate-200 dark:border-slate-700 pb-6">
                    <div>
                       <h4 className="text-xs font-bold text-green-600 uppercase mb-2">Haberes</h4>

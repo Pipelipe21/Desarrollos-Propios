@@ -3,7 +3,9 @@ import { db } from '../db/db';
 import { Product, Batch } from '../types';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Search, Plus, ScanLine, ArrowLeft, Save, X, Image as ImageIcon, Tag, DollarSign, Barcode, Layers, Trash2 } from 'lucide-react';
-import BarcodeScanner from './BarcodeScanner';
+
+// Lazy-loaded: pulls in @zxing/browser, only needed once someone opens the scanner.
+const BarcodeScanner = React.lazy(() => import('./BarcodeScanner'));
 
 const InventoryManager: React.FC = () => {
   const [view, setView] = useState<'list' | 'form' | 'scanner'>('list');
@@ -109,7 +111,11 @@ const InventoryManager: React.FC = () => {
   // --- VIEWS ---
 
   if (view === 'scanner') {
-    return <BarcodeScanner onScan={handleScan} onClose={() => setView('list')} />;
+    return (
+      <React.Suspense fallback={null}>
+        <BarcodeScanner onScan={handleScan} onClose={() => setView('list')} />
+      </React.Suspense>
+    );
   }
 
   if (view === 'form') {

@@ -1,17 +1,10 @@
-import * as pdfjsLib from 'pdfjs-dist';
+import * as pdf from 'pdfjs-dist';
+import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import { db } from '../db/db';
 import { Manual, ManualSegment } from '../types';
 
-// PDF.js worker setup
-// Handle potential ESM/CJS interop issues where default export contains the lib
-const pdf: any = (pdfjsLib as any).default || pdfjsLib;
-
-// Explicitly check and set worker
-if (pdf.GlobalWorkerOptions) {
-  pdf.GlobalWorkerOptions.workerSrc = `https://esm.sh/pdfjs-dist@3.11.174/build/pdf.worker.min.mjs`;
-} else {
-  console.warn("PDF.js GlobalWorkerOptions not found, PDF processing might fail.");
-}
+// Bundled locally by Vite so PDF processing keeps working offline (no external CDN).
+pdf.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
 
 export interface SearchResult {
   segment: ManualSegment;
@@ -27,7 +20,7 @@ export const processPDF = async (file: File, machineId?: number, onProgress?: (p
   const arrayBuffer = await file.arrayBuffer();
   
   // Load PDF
-  const loadingTask = pdf.getDocument(arrayBuffer);
+  const loadingTask = pdf.getDocument({ data: arrayBuffer });
   const doc = await loadingTask.promise;
   const pageCount = doc.numPages;
 
