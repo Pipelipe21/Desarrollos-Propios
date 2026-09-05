@@ -57,8 +57,14 @@ const InventoryManager: React.FC = () => {
     
     try {
       let productId = selectedProduct?.id;
-      const totalStock = variants.reduce((acc, v) => acc + (v.quantity || 0), 0);
-      const productToSave = { ...formData, stockTotal: totalStock };
+      // Stock is only tracked per-variant for products that have variants — for
+      // those, stockTotal is the sum of variant quantities. A product with no
+      // variants keeps whatever stockTotal it already had (e.g. decremented by
+      // POS sales); recomputing it here would otherwise reset it to 0 on every
+      // save, wiping out sales that happened since it was created.
+      const productToSave = variants.length > 0
+        ? { ...formData, stockTotal: variants.reduce((acc, v) => acc + (v.quantity || 0), 0) }
+        : { ...formData };
 
       if (productId) {
         await db.products.update(productId, productToSave);
