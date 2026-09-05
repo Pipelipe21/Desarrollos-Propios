@@ -47,7 +47,10 @@ const POS: React.FC = () => {
   const cartTotal = cart.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0);
 
   const products = useLiveQuery(
-    () => db.products.where('name').startsWithIgnoreCase(searchTerm).limit(10).toArray(),
+    () => db.products
+      .filter(p => p.name.toLowerCase().includes(searchTerm.trim().toLowerCase()))
+      .limit(10)
+      .toArray(),
     [searchTerm]
   );
 

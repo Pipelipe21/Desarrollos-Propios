@@ -9,6 +9,7 @@ import AttendanceModule from '../HR/AttendanceModule';
 import TaskBoard from '../Tasks/TaskBoard';
 import LibraryManager from './LibraryManager';
 import { UserRole } from '../../types';
+import { useScrollTopOnChange } from '../../hooks/useScrollTopOnChange';
 
 // Lazy-loaded: these pull in @google/genai and/or pdfjs-dist, only needed on demand.
 const AIReportModal = React.lazy(() => import('../Admin/AIReportModal'));
@@ -18,7 +19,8 @@ const TechnicalAssistant = React.lazy(() => import('./TechnicalAssistant'));
 const TallerDashboard: React.FC = () => {
   const { user } = useAuth();
   const [activeModule, setActiveModule] = useState<'fleet' | 'tasks' | 'attendance' | null>(null);
-  
+  useScrollTopOnChange(activeModule);
+
   // Modals
   const [showAI, setShowAI] = useState(false);
   const [showTaskBoard, setShowTaskBoard] = useState(false);

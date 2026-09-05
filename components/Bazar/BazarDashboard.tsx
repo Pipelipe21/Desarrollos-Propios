@@ -8,6 +8,7 @@ import InventoryManager from '../InventoryManager';
 import AttendanceModule from '../HR/AttendanceModule';
 import FinancialDashboard from './FinancialDashboard';
 import { UserRole } from '../../types';
+import { useScrollTopOnChange } from '../../hooks/useScrollTopOnChange';
 
 // Lazy-loaded: pulls in @google/genai, only needed once someone opens the AI report.
 const AIReportModal = React.lazy(() => import('../Admin/AIReportModal'));
@@ -16,6 +17,7 @@ const BazarDashboard: React.FC = () => {
   const { user } = useAuth();
   const [activeModule, setActiveModule] = useState<'pos' | 'inventory' | 'attendance' | 'financial' | null>(null);
   const [showAI, setShowAI] = useState(false);
+  useScrollTopOnChange(activeModule);
 
   // KPIs for Bazar
   const today = new Date();

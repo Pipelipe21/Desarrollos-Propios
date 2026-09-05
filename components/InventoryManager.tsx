@@ -3,12 +3,14 @@ import { db } from '../db/db';
 import { Product, Batch } from '../types';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Search, Plus, ScanLine, ArrowLeft, Save, X, Image as ImageIcon, Tag, DollarSign, Barcode, Layers, Trash2 } from 'lucide-react';
+import { useScrollTopOnChange } from '../hooks/useScrollTopOnChange';
 
 // Lazy-loaded: pulls in @zxing/browser, only needed once someone opens the scanner.
 const BarcodeScanner = React.lazy(() => import('./BarcodeScanner'));
 
 const InventoryManager: React.FC = () => {
   const [view, setView] = useState<'list' | 'form' | 'scanner'>('list');
+  useScrollTopOnChange(view);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
