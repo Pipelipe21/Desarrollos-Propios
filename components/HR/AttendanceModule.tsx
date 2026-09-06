@@ -242,7 +242,10 @@ const AttendanceModule: React.FC = () => {
         
         {/* Admin Link (Only for admin) */}
         {user.role === UserRole.ADMIN && (
-          <button className="w-full py-3 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-medium text-sm">
+          <button
+            onClick={() => alert('Reporte completo de asistencia (Próximamente). Por ahora, revisa "Últimas Marcas" arriba o exporta los datos desde Configuración.')}
+            className="w-full py-3 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-medium text-sm"
+          >
              Ver Reporte Completo (Admin)
           </button>
         )}

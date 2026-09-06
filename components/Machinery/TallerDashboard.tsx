@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
-import { Wrench, Truck, ClipboardList, Clock, Activity, Sparkles, BrainCircuit, Book, Bot } from 'lucide-react';
+import { Wrench, Truck, ClipboardList, Clock, Activity, Sparkles, BrainCircuit, Book, Bot, Wallet } from 'lucide-react';
 import FleetDashboard from './FleetDashboard';
 import SpecialistDashboard from './SpecialistDashboard';
 import AttendanceModule from '../HR/AttendanceModule';
@@ -11,14 +11,15 @@ import LibraryManager from './LibraryManager';
 import { UserRole } from '../../types';
 import { useScrollTopOnChange } from '../../hooks/useScrollTopOnChange';
 
-// Lazy-loaded: these pull in @google/genai and/or pdfjs-dist, only needed on demand.
+// Lazy-loaded: these pull in @google/genai, pdfjs-dist and/or jspdf, only needed on demand.
 const AIReportModal = React.lazy(() => import('../Admin/AIReportModal'));
 const PreventiveAssistant = React.lazy(() => import('./PreventiveAssistant'));
 const TechnicalAssistant = React.lazy(() => import('./TechnicalAssistant'));
+const PayrollDashboard = React.lazy(() => import('../HR/PayrollDashboard'));
 
 const TallerDashboard: React.FC = () => {
   const { user } = useAuth();
-  const [activeModule, setActiveModule] = useState<'fleet' | 'tasks' | 'attendance' | null>(null);
+  const [activeModule, setActiveModule] = useState<'fleet' | 'tasks' | 'attendance' | 'payroll' | null>(null);
   useScrollTopOnChange(activeModule);
 
   // Modals
@@ -66,6 +67,14 @@ const TallerDashboard: React.FC = () => {
         </div>
         <AttendanceModule />
        </div>
+    );
+  }
+
+  if (activeModule === 'payroll') {
+    return (
+      <React.Suspense fallback={null}>
+        <PayrollDashboard onBack={() => setActiveModule(null)} />
+      </React.Suspense>
     );
   }
 
@@ -189,6 +198,25 @@ const TallerDashboard: React.FC = () => {
                 <span className="text-emerald-500 text-xs font-bold uppercase underline">Marcar &rarr;</span>
              </div>
           </div>
+
+          {/* Module: PAYROLL (ADMIN ONLY) */}
+          {user?.role === UserRole.ADMIN && (
+            <div
+              onClick={() => setActiveModule('payroll')}
+              className="bg-slate-900 p-6 border-2 border-slate-800 hover:border-purple-500 cursor-pointer transition-all group relative overflow-hidden"
+            >
+               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                  <Wallet className="w-24 h-24 text-white" />
+               </div>
+               <div className="relative z-10">
+                  <h3 className="font-bold text-white text-xl uppercase mb-2">Nómina</h3>
+                  <p className="text-xs text-slate-400 mb-6 max-w-[80%]">
+                     Liquidaciones de sueldo del personal.
+                  </p>
+                  <span className="text-purple-400 text-xs font-bold uppercase underline">Acceder &rarr;</span>
+               </div>
+            </div>
+          )}
 
        </div>
        

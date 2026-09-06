@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../../db/db';
-import { ShoppingBag, Store, TrendingUp, AlertCircle, Clock, Sparkles, PieChart } from 'lucide-react';
+import { ShoppingBag, Store, TrendingUp, AlertCircle, Clock, Sparkles, PieChart, Wallet } from 'lucide-react';
 import POS from '../POS/POS';
 import InventoryManager from '../InventoryManager';
 import AttendanceModule from '../HR/AttendanceModule';
@@ -10,12 +10,13 @@ import FinancialDashboard from './FinancialDashboard';
 import { UserRole } from '../../types';
 import { useScrollTopOnChange } from '../../hooks/useScrollTopOnChange';
 
-// Lazy-loaded: pulls in @google/genai, only needed once someone opens the AI report.
+// Lazy-loaded: pulls in @google/genai / jspdf, only needed once someone opens them.
 const AIReportModal = React.lazy(() => import('../Admin/AIReportModal'));
+const PayrollDashboard = React.lazy(() => import('../HR/PayrollDashboard'));
 
 const BazarDashboard: React.FC = () => {
   const { user } = useAuth();
-  const [activeModule, setActiveModule] = useState<'pos' | 'inventory' | 'attendance' | 'financial' | null>(null);
+  const [activeModule, setActiveModule] = useState<'pos' | 'inventory' | 'attendance' | 'financial' | 'payroll' | null>(null);
   const [showAI, setShowAI] = useState(false);
   useScrollTopOnChange(activeModule);
 
@@ -69,6 +70,14 @@ const BazarDashboard: React.FC = () => {
 
   if (activeModule === 'financial') {
     return <FinancialDashboard onBack={() => setActiveModule(null)} />;
+  }
+
+  if (activeModule === 'payroll') {
+    return (
+      <React.Suspense fallback={null}>
+        <PayrollDashboard onBack={() => setActiveModule(null)} />
+      </React.Suspense>
+    );
   }
 
   return (
@@ -149,6 +158,21 @@ const BazarDashboard: React.FC = () => {
                 </div>
                 <h3 className="font-bold text-slate-800 dark:text-white text-lg">Finanzas Avanzadas</h3>
                 <p className="text-sm text-slate-500">KPIs, Utilidad & Estrategia IA</p>
+             </div>
+          )}
+
+          {/* Module: Payroll (ADMIN ONLY) */}
+          {user?.role === UserRole.ADMIN && (
+             <div
+               onClick={() => setActiveModule('payroll')}
+               className="bg-gradient-to-br from-white to-pink-50 dark:from-slate-800 dark:to-slate-800 p-6 rounded-2xl shadow-sm border border-pink-200 dark:border-pink-900/50 cursor-pointer hover:shadow-lg hover:border-pink-500 hover:scale-[1.02] transition-all group relative overflow-hidden"
+             >
+                <div className="absolute top-0 right-0 p-2 bg-pink-500 text-white text-[10px] font-bold uppercase rounded-bl-xl shadow-md">Panel Admin</div>
+                <div className="bg-purple-100 dark:bg-purple-900/30 w-12 h-12 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                   <Wallet className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                </div>
+                <h3 className="font-bold text-slate-800 dark:text-white text-lg">Nómina</h3>
+                <p className="text-sm text-slate-500">Liquidaciones de Sueldo</p>
              </div>
           )}
 
