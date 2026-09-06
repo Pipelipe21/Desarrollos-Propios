@@ -2,16 +2,119 @@ import React, { useState } from 'react';
 import { db } from '../../db/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Equipment } from '../../types';
-import { Wrench, AlertTriangle, FileText, CheckSquare, Activity, Battery, ArrowLeft, Package, Settings } from 'lucide-react';
+import { Wrench, AlertTriangle, FileText, CheckSquare, Activity, Battery, ArrowLeft, Package, Settings, Plus, X } from 'lucide-react';
 import DiagnosticAssistant from './DiagnosticAssistant';
 import WorkshopDashboard from './WorkshopDashboard';
 import MachineProfile from './MachineProfile';
+
+const emptyNewMachine: Partial<Equipment> = {
+  brand: '', model: '', licensePlate: '', year: undefined,
+  currentHourMeter: 0, nextMaintenanceAt: 0, status: 'operative',
+};
+
+const AddMachineForm: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+  const [form, setForm] = useState<Partial<Equipment>>(emptyNewMachine);
+
+  const handleSave = async () => {
+    if (!form.brand || !form.model) return alert('Marca y Modelo son obligatorios.');
+    if (!form.licensePlate) return alert('La Patente es obligatoria.');
+
+    await db.equipment.add({
+      ...form,
+      currentHourMeter: form.currentHourMeter || 0,
+      nextMaintenanceAt: form.nextMaintenanceAt || 0,
+      initialHourMeter: form.currentHourMeter || 0,
+      status: form.status || 'operative',
+    } as Equipment);
+
+    onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4 font-mono">
+      <div className="w-full max-w-lg bg-slate-950 border-2 border-yellow-500/50 rounded-sm shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="p-6 border-b-2 border-yellow-500 flex justify-between items-center sticky top-0 bg-slate-950">
+          <h2 className="text-lg font-black uppercase tracking-widest text-white">Agregar Máquina</h2>
+          <button onClick={onClose} className="p-2 text-slate-400 hover:text-white"><X className="w-5 h-5" /></button>
+        </div>
+        <div className="p-6 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Marca *</label>
+              <input
+                className="w-full bg-black border border-slate-700 p-3 text-white focus:border-yellow-500 outline-none"
+                value={form.brand || ''}
+                onChange={e => setForm({ ...form, brand: e.target.value })}
+                placeholder="Ej: Caterpillar"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Modelo *</label>
+              <input
+                className="w-full bg-black border border-slate-700 p-3 text-white focus:border-yellow-500 outline-none"
+                value={form.model || ''}
+                onChange={e => setForm({ ...form, model: e.target.value })}
+                placeholder="Ej: 320D"
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-red-500 uppercase mb-1">Patente (PPU) *</label>
+              <input
+                className="w-full bg-black border border-red-900/50 p-3 text-yellow-500 font-bold focus:border-red-500 outline-none"
+                value={form.licensePlate || ''}
+                onChange={e => setForm({ ...form, licensePlate: e.target.value.toUpperCase() })}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Año</label>
+              <input
+                type="number"
+                className="w-full bg-black border border-slate-700 p-3 text-white focus:border-yellow-500 outline-none"
+                value={form.year || ''}
+                onChange={e => setForm({ ...form, year: Number(e.target.value) })}
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Horómetro Actual</label>
+              <input
+                type="number"
+                className="w-full bg-black border border-slate-700 p-3 text-white focus:border-yellow-500 outline-none"
+                value={form.currentHourMeter ?? ''}
+                onChange={e => setForm({ ...form, currentHourMeter: Number(e.target.value) })}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Próxima Mantención (Hrs)</label>
+              <input
+                type="number"
+                className="w-full bg-black border border-slate-700 p-3 text-white focus:border-yellow-500 outline-none"
+                value={form.nextMaintenanceAt ?? ''}
+                onChange={e => setForm({ ...form, nextMaintenanceAt: Number(e.target.value) })}
+              />
+            </div>
+          </div>
+          <button
+            onClick={handleSave}
+            className="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-black uppercase py-3 mt-2"
+          >
+            Guardar Máquina
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const FleetDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [selectedMachineId, setSelectedMachineId] = useState<number | null>(null);
   const [showDiagnostic, setShowDiagnostic] = useState<Equipment | null>(null);
   const [showWorkshop, setShowWorkshop] = useState(false);
-  
+  const [showAddMachine, setShowAddMachine] = useState(false);
+
   const equipment = useLiveQuery(() => db.equipment.toArray());
 
   // Helper to determine status color
@@ -33,11 +136,13 @@ const FleetDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 font-mono pb-20">
       {showDiagnostic && (
-        <DiagnosticAssistant 
-          machine={showDiagnostic} 
-          onClose={() => setShowDiagnostic(null)} 
+        <DiagnosticAssistant
+          machine={showDiagnostic}
+          onClose={() => setShowDiagnostic(null)}
         />
       )}
+
+      {showAddMachine && <AddMachineForm onClose={() => setShowAddMachine(false)} />}
 
       {/* Industrial Header */}
       <div className="bg-slate-900 border-b-4 border-yellow-500 p-6 flex justify-between items-center sticky top-0 z-10 shadow-2xl">
@@ -50,27 +155,48 @@ const FleetDashboard: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             <p className="text-xs text-yellow-500 font-bold">GESTIÓN DE FLOTA v2.0</p>
           </div>
         </div>
-        
-        {/* Navigation to Workshop */}
-        <button 
-           onClick={() => setShowWorkshop(true)}
-           className="hidden sm:flex bg-slate-800 border border-yellow-500/50 text-yellow-500 px-4 py-2 hover:bg-slate-700 items-center gap-2 font-bold uppercase text-xs"
-        >
-           <Package className="w-4 h-4" /> Ir a Taller / Pañol
-        </button>
+
+        <div className="flex items-center gap-2">
+          <button
+             onClick={() => setShowAddMachine(true)}
+             className="flex bg-yellow-500 hover:bg-yellow-400 text-black px-4 py-2 items-center gap-2 font-bold uppercase text-xs"
+          >
+             <Plus className="w-4 h-4" /> Agregar Máquina
+          </button>
+          {/* Navigation to Workshop */}
+          <button
+             onClick={() => setShowWorkshop(true)}
+             className="hidden sm:flex bg-slate-800 border border-yellow-500/50 text-yellow-500 px-4 py-2 hover:bg-slate-700 items-center gap-2 font-bold uppercase text-xs"
+          >
+             <Package className="w-4 h-4" /> Ir a Taller / Pañol
+          </button>
+        </div>
       </div>
 
       <div className="p-6 max-w-7xl mx-auto">
-        
+
         {/* Mobile Workshop Button */}
         <div className="sm:hidden mb-6">
-           <button 
+           <button
              onClick={() => setShowWorkshop(true)}
              className="w-full bg-slate-800 border border-yellow-500 text-yellow-500 py-3 font-bold uppercase flex justify-center items-center gap-2"
            >
              <Package className="w-5 h-5" /> Gestión de Taller y Repuestos
            </button>
         </div>
+
+        {equipment && equipment.length === 0 && (
+          <div className="text-center py-16 border-2 border-dashed border-slate-800 rounded-sm">
+            <Wrench className="w-10 h-10 mx-auto mb-4 text-slate-700" />
+            <p className="text-slate-500 font-bold uppercase mb-4">Aún no hay máquinas registradas</p>
+            <button
+              onClick={() => setShowAddMachine(true)}
+              className="bg-yellow-500 hover:bg-yellow-400 text-black px-6 py-3 font-bold uppercase text-xs inline-flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" /> Agregar la Primera Máquina
+            </button>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {equipment?.map(eq => {
