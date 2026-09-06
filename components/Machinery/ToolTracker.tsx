@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { db } from '../../db/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { Tool, LogType, SyncStatus } from '../../types';
-import { Wrench, CheckCircle, AlertTriangle, User, RefreshCw, X } from 'lucide-react';
+import { Wrench, CheckCircle, AlertTriangle, User, RefreshCw, X, Plus } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 interface ToolTrackerProps {
@@ -14,6 +14,20 @@ const ToolTracker: React.FC<ToolTrackerProps> = ({ onClose }) => {
   const [filter, setFilter] = useState('');
   const [selectedTool, setSelectedTool] = useState<Tool | null>(null);
   const [assigneeName, setAssigneeName] = useState('');
+  const [showAddTool, setShowAddTool] = useState(false);
+  const [newTool, setNewTool] = useState({ name: '', brand: '' });
+
+  const handleAddTool = async () => {
+    if (!newTool.name) return alert('El nombre de la herramienta es obligatorio.');
+    await db.tools.add({
+      name: newTool.name,
+      brand: newTool.brand,
+      status: 'available',
+      lastMovement: Date.now(),
+    });
+    setNewTool({ name: '', brand: '' });
+    setShowAddTool(false);
+  };
 
   const tools = useLiveQuery(
     () => db.tools
@@ -79,14 +93,52 @@ const ToolTracker: React.FC<ToolTrackerProps> = ({ onClose }) => {
           
           {/* List Side */}
           <div className="w-1/2 border-r border-slate-800 p-4 flex flex-col">
-             <input 
-               type="text" 
-               placeholder="BUSCAR HERRAMIENTA..."
-               value={filter}
-               onChange={e => setFilter(e.target.value)}
-               className="bg-black border border-slate-700 text-yellow-500 p-3 mb-4 focus:border-yellow-500 outline-none uppercase font-bold placeholder:text-slate-700"
-             />
-             
+             <div className="flex gap-2 mb-4">
+               <input
+                 type="text"
+                 placeholder="BUSCAR HERRAMIENTA..."
+                 value={filter}
+                 onChange={e => setFilter(e.target.value)}
+                 className="flex-1 bg-black border border-slate-700 text-yellow-500 p-3 focus:border-yellow-500 outline-none uppercase font-bold placeholder:text-slate-700"
+               />
+               <button
+                 onClick={() => setShowAddTool(v => !v)}
+                 className="px-3 bg-yellow-500 hover:bg-yellow-400 text-black"
+                 title="Agregar Herramienta"
+               >
+                 <Plus className="w-5 h-5" />
+               </button>
+             </div>
+
+             {showAddTool && (
+               <div className="bg-slate-900 border border-yellow-600 p-3 mb-4 space-y-2">
+                 <input
+                   type="text"
+                   placeholder="NOMBRE *"
+                   value={newTool.name}
+                   onChange={e => setNewTool({ ...newTool, name: e.target.value })}
+                   className="w-full bg-black border border-slate-700 text-white p-2 uppercase focus:border-yellow-500 outline-none"
+                 />
+                 <input
+                   type="text"
+                   placeholder="MARCA"
+                   value={newTool.brand}
+                   onChange={e => setNewTool({ ...newTool, brand: e.target.value })}
+                   className="w-full bg-black border border-slate-700 text-white p-2 uppercase focus:border-yellow-500 outline-none"
+                 />
+                 <button
+                   onClick={handleAddTool}
+                   className="w-full py-2 bg-yellow-600 hover:bg-yellow-500 text-black font-bold uppercase text-sm"
+                 >
+                   Guardar Herramienta
+                 </button>
+               </div>
+             )}
+
+             {tools && tools.length === 0 && !showAddTool && (
+               <p className="text-slate-600 text-center text-sm uppercase py-4">Aún no hay herramientas registradas.</p>
+             )}
+
              <div className="flex-1 overflow-y-auto space-y-2">
                {tools?.map(tool => (
                  <div 
